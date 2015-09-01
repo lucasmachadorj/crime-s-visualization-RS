@@ -8,7 +8,7 @@ Carregue o arquivo /static/indicativos.csv no mongoDB da seguinte forma:
 
 ```{r, engine='bash', count_lines}
 
-    $ mongoimport -d indicativos -c crimes --type csv --file indicativos.csv —headerline   
+    $ mongoimport -d indicativos -c crimes --type csv --file indicativos.csv —headerline
 ```
 
 Verifique se deu certo:
@@ -19,5 +19,10 @@ Verifique se deu certo:
     $ use indicativos
     $ show collections
     $ db.crimes.findOne()
-    
+
 ```
+### libraries utilizadas
+
+- crossfilter.js é usado para agrupar, filtrar e agregar grandes conjuntos de dados
+- d3.js para controlar os dados e construir os gráficos
+- dc.js gerencia o crossfilter.js e d3.js facilitando a criação de visualizações interativas
