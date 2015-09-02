@@ -26,3 +26,5 @@ Verifique se deu certo:
 - crossfilter.js é usado para agrupar, filtrar e agregar grandes conjuntos de dados
 - d3.js para controlar os dados e construir os gráficos
 - dc.js gerencia o crossfilter.js e d3.js facilitando a criação de visualizações interativas
+
+Blog usado como referência: <http://adilmoujahid.com/posts/2015/01/interactive-data-visualization-d3-dc-python-mongodb/>

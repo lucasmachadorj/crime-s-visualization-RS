@@ -23,7 +23,7 @@ FIELDS = { 'MUNICIPIO': True, 'FATO': True,
 def home():
     return render_template('home.html')
 
-@app.route('/data/crimes')
+@app.route('/indicativos/crimes')
 def crimes():
     connection = MongoClient(MONGODB_HOST, MONGODB_PORT)
     collection = connection[DBS_NAME][COLLECTION_NAME]
