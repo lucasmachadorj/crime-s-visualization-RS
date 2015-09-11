@@ -62,12 +62,35 @@ function createVisualization(json) {
         .attr("display", function(d) { return d.depth ? null : "none"; })
         .attr("d", arc)
         .attr("fill-rule", "evenodd")
-        .style("fill", function(d) { return colors[d.name]; })
+        .style("fill", function(d) {
+            console.log(d.name)
+            return colors[d.name];
+        })
         .style("opacity", 1)
         .on("mouseover", mouseover);
 
+    d3.select("#container").on("mouseleave", mouseleave);
+
     totalSize = path.node().__data__.value;
 
+}
+
+function mouseleave(d){
+    d3.select("#trail")
+        .style("visibility", "hidden");
+
+    d3.selectAll("path").on("mouseover", null);
+
+    d3.selectAll("path")
+        .transition()
+        .duration(1000)
+        .style("opacity", 1)
+        .each("end", function() {
+            d3.select(this).on("mouseover", mouseover);
+        });
+
+    d3.select("#explanation")
+        .style("visibility", "hidden");
 }
 
 function initializeBreadcrumbTrail(){
@@ -94,6 +117,73 @@ function mouseover(d){
     d3.select("#explanation")
         .style("visibility", "");
 
+    var sequenceArray = getAncestors(d);
+    updateBreadcrumbs(sequenceArray, percentageString);
+
+    d3.selectAll("path")
+        .style("opacity", 0.3);
+
+    vis.selectAll("path")
+    .filter(function(node) {
+        return (sequenceArray.indexOf(node) >= 0);
+    }).style("opacity", 1);
+}
+
+function getAncestors(node){
+    var path = [];
+    var current = node;
+    while(current.parent){
+        path.unshift(current);
+        current = current.parent;
+    }
+    return path;
+}
+
+function breadcrumbPoints(d, i) {
+    var points = [];
+    points.push("0,0");
+    points.push(b.w + ",0");
+    points.push(b.w + b.t + "," + (b.h / 2));
+    points.push(b.w + "," + b.h);
+    points.push("0," + b.h);
+    if (i > 0) { // Leftmost breadcrumb; don't include 6th vertex.
+        points.push(b.t + "," + (b.h / 2));
+    }
+    return points.join(" ");
+}
+
+function updateBreadcrumbs(nodeArray, percentageString){
+    var g = d3.select("#trail")
+        .selectAll("g")
+        .data(nodeArray, function(d) { return d.name + d.depth; });
+    var entering = g.enter().append("svg:g");
+    entering.append("svg:polygon")
+        .attr("points", breadcrumbPoints)
+        .style("fill", function(d) { return colors[d.name]; });
+
+    entering.append("svg:text")
+        .attr("x", (b.w + b.t) / 2)
+        .attr("y", b.h / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "middle")
+        .text(function(d) { return d.name; });
+
+    g.attr("transform", function(d, i) {
+        return "translate(" + i * (b.w + b.s) + ", 0)";
+    });
+
+    // Remove exiting nodes.
+    g.exit().remove();
+
+    d3.select("#trail").select("#endlabel")
+        .attr("x", (nodeArray.length + 0.5) * (b.w + b.s))
+        .attr("y", b.h / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "middle")
+        .text(percentageString);
+
+    d3.select("#trail")
+        .style("visibility", "");
 }
 
 function drawLegend(){
