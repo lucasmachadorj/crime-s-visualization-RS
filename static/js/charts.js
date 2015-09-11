@@ -46,17 +46,54 @@ function createVisualization(json) {
     initializeBreadcrumbTrail();
     drawLegend();
     d3.select("#togglelegend").on("click", toggleLegend);
+
+    vis.append("svg:circle")
+        .attr("r", radius)
+        .style("opacity", 0);
+
+    var nodes = partition.nodes(json)
+        .filter(function(d){
+            return (d.dx > 0.001)
+        });
+
+    var path = vis.data([json]).selectAll("path")
+        .data(nodes)
+        .enter().append("svg:path")
+        .attr("display", function(d) { return d.depth ? null : "none"; })
+        .attr("d", arc)
+        .attr("fill-rule", "evenodd")
+        .style("fill", function(d) { return colors[d.name]; })
+        .style("opacity", 1)
+        .on("mouseover", mouseover);
+
+    totalSize = path.node().__data__.value;
+
 }
 
 function initializeBreadcrumbTrail(){
     var trail = d3.select("#sequence")
         .append("svg:svg")
         .attr("width", width)
-        .attr("height", height)
+        .attr("height", 50)
         .attr("id", "trail");
     trail.append("svg:text")
         .attr("id", "endlabel")
         .attr("style", "#000");
+
+}
+
+function mouseover(d){
+    var percentage = (100 * d.value / totalSize).toPrecision(3);
+    var percentageString = percentage + "%";
+    if(percentage < 0.01)
+        percentageString = "< 0.01%";
+
+    d3.select("#percentage")
+        .text(percentageString);
+
+    d3.select("#explanation")
+        .style("visibility", "");
+
 }
 
 function drawLegend(){
