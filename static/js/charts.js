@@ -1,10 +1,10 @@
 // Dimensions of sunburst.
-var width = 750,
+var width = 1200,
     height = 600,
     radius = Math.min(width, height) / 2;
 
 // Breadcrumb dimensions: width, height, spacing, width of tip/tail.
-var b = { w: 75, h: 30, s: 3, t: 10};
+var b = { w: 300, h: 30, s: 3, t: 10};
 
 // Mapping of step names to colors.
 // Mapping of step names to colors.
@@ -13,7 +13,26 @@ var colors = {
   "mesorregiao": "#5687d1",
   "microrregiao": "#7b615c",
   "fato": "#de783b",
+
+  // "janeiro":
 };
+
+var yearsA = {
+    "2002": "#a173d1",
+    "2003": "#a173d1",
+    "2004": "#a173d1",
+    "2005": "#a173d1",
+    "2006": "#a173d1",
+}
+
+var yearsB = {
+    "2007": "#a173d1",
+    "2008": "#a173d1",
+    "2009": "#a173d1",
+    "2010": "#a173d1",
+    "2011": "#a173d1",
+    "2012": "#a173d1",
+}
 
 // Total size of all segments; we set this later, after loading the data.
 var totalSize = 0;
@@ -45,7 +64,7 @@ d3.text("static/js/path.csv", function(text){
 function createVisualization(json) {
     initializeBreadcrumbTrail();
     drawLegend();
-    d3.select("#togglelegend").on("click", toggleLegend);
+
 
     vis.append("svg:circle")
         .attr("r", radius)
@@ -53,7 +72,7 @@ function createVisualization(json) {
 
     var nodes = partition.nodes(json)
         .filter(function(d){
-            return (d.dx > 0.001)
+            return (d.dx > 0.005)
         });
 
     var path = vis.data([json]).selectAll("path")
@@ -146,7 +165,7 @@ function breadcrumbPoints(d, i) {
     points.push(b.w + b.t + "," + (b.h / 2));
     points.push(b.w + "," + b.h);
     points.push("0," + b.h);
-    if (i > 0) { // Leftmost breadcrumb; don't include 6th vertex.
+    if (i > 0) {
         points.push(b.t + "," + (b.h / 2));
     }
     return points.join(" ");
@@ -159,7 +178,7 @@ function updateBreadcrumbs(nodeArray, percentageString){
     var entering = g.enter().append("svg:g");
     entering.append("svg:polygon")
         .attr("points", breadcrumbPoints)
-        .style("fill", function(d) { return colors[d.name]; });
+        .style("fill", function(d) { return colors["mes"]; });
 
     entering.append("svg:text")
         .attr("x", (b.w + b.t) / 2)
@@ -187,41 +206,59 @@ function updateBreadcrumbs(nodeArray, percentageString){
 }
 
 function drawLegend(){
-    var li = { w: 75, h: 30, s: 3, r: 3};
+    var li = { w: 75, h: 130, s: 3, r: 3};
 
-    var legend = d3.select("#legend").append("svg:svg")
+    var legendA = d3.select("#legendA").append("svg:svg")
         .attr("width", li.w)
-        .attr("height", d3.keys(colors).length * (li.h + li.s));
+        .attr("height", d3.keys(yearsA).length * (li.h + li.s));
 
-    var g = legend.selectAll("g")
-        .data(d3.entries(colors))
+    var legendB = d3.select("#legendB").append("svg:svg")
+        .attr("width", li.w)
+        .attr("height", d3.keys(yearsA).length * (li.h + li.s));
+
+
+    var gA = legendA.selectAll("g")
+        .data(d3.entries(yearsA))
         .enter().append("svg:g")
         .attr("transform", function(d, i){
             return "translate(0," + i * (li.h + li.s) + ")";
         });
 
-    g.append("svg:rect")
+
+    var gB = legendB.selectAll("g")
+        .data(d3.entries(yearsB))
+        .enter().append("svg:g")
+        .attr("transform", function(d, i){
+            return "translate(0," + i * (li.h + li.s) + ")";
+        });
+
+    gA.append("svg:rect")
         .attr("rx", li.r)
         .attr("ry", li.r)
         .attr("width", li.w)
         .attr("height", li.h)
         .style("fill", function(d) { return d.value; });
 
-    g.append("svg:text")
+    gB.append("svg:rect")
+        .attr("rx", li.r)
+        .attr("ry", li.r)
+        .attr("width", li.w)
+        .attr("height", li.h)
+        .style("fill", function(d) { return d.value; });
+
+    gA.append("svg:text")
         .attr("x", li.w / 2)
         .attr("y", li.h / 2)
         .attr("dy", "0.35em")
         .attr("text-anchor", "middle")
         .text(function(d) { return d.key });
-}
 
-function toggleLegend(){
-    var legend = d3.select("#legend");
-    if(legend.style("visibility") == "hidden"){
-        legend.style("visibility","");
-    } else {
-        legend.style("visibility", "hidden");
-    }
+    gB.append("svg:text")
+        .attr("x", li.w / 2)
+        .attr("y", li.h / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "middle")
+        .text(function(d) { return d.key });
 }
 
 function buildHierarchy(csv){
