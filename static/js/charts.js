@@ -38,6 +38,7 @@ var arc = d3.svg.arc()
 d3.text("static/js/path.csv", function(text){
     var csv = d3.csv.parseRows(text);
     var json = buildHierarchy(csv);
+    console.log(json);
 });
 
 
@@ -51,7 +52,6 @@ function buildHierarchy(csv){
         }
 
         var parts = sequence.split("-");
-        console.log(parts);
         var currentNode = root;
         for( var j = 0; j < parts.length; j++){
             var children = currentNode["children"];
