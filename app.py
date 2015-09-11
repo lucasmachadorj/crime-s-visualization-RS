@@ -15,8 +15,8 @@ MONGODB_HOST = 'localhost'
 MONGODB_PORT = 27017
 DBS_NAME = 'indicativos'
 COLLECTION_NAME = 'crimes'
-FIELDS = { 'MUNICIPIO': True, 'FATO': True,
-           'QTDE': True, 'ANO': True, 'MES': True, "_id": False
+FIELDS = { 'indice':True, 'municipio': True, 'fato': True,
+           'qtde': True, 'ano': True, 'mes': True, "microrregiao":True,"mesorregiao":True,"_id": False
          }
 
 @app.route('/')

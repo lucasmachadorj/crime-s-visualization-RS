@@ -8,7 +8,8 @@ Carregue o arquivo /static/indicativos.csv no mongoDB da seguinte forma:
 
 ```{r, engine='bash', count_lines}
 
-    $ mongoimport -d indicativos -c crimes --type csv --file indicativos.csv —headerline
+    $  mongoimport -d indicativos -c crimes --type csv -file "indicativo.csv" -headerline
+
 ```
 
 Verifique se deu certo:
