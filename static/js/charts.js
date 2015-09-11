@@ -39,8 +39,63 @@ d3.text("static/js/path.csv", function(text){
     var csv = d3.csv.parseRows(text);
     var json = buildHierarchy(csv);
     console.log(json);
+    createVisualization(json);
 });
 
+function createVisualization(json) {
+    initializeBreadcrumbTrail();
+    drawLegend();
+    d3.select("#togglelegend").on("click", toggleLegend);
+}
+
+function initializeBreadcrumbTrail(){
+    var trail = d3.select("#sequence")
+        .append("svg:svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("id", "trail");
+    trail.append("svg:text")
+        .attr("id", "endlabel")
+        .attr("style", "#000");
+}
+
+function drawLegend(){
+    var li = { w: 75, h: 30, s: 3, r: 3};
+
+    var legend = d3.select("#legend").append("svg:svg")
+        .attr("width", li.w)
+        .attr("height", d3.keys(colors).length * (li.h + li.s));
+
+    var g = legend.selectAll("g")
+        .data(d3.entries(colors))
+        .enter().append("svg:g")
+        .attr("transform", function(d, i){
+            return "translate(0," + i * (li.h + li.s) + ")";
+        });
+
+    g.append("svg:rect")
+        .attr("rx", li.r)
+        .attr("ry", li.r)
+        .attr("width", li.w)
+        .attr("height", li.h)
+        .style("fill", function(d) { return d.value; });
+
+    g.append("svg:text")
+        .attr("x", li.w / 2)
+        .attr("y", li.h / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "middle")
+        .text(function(d) { return d.key });
+}
+
+function toggleLegend(){
+    var legend = d3.select("#legend");
+    if(legend.style("visibility") == "hidden"){
+        legend.style("visibility","");
+    } else {
+        legend.style("visibility", "hidden");
+    }
+}
 
 function buildHierarchy(csv){
     var root = {"name": "root", "children": []};
