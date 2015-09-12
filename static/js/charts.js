@@ -9,29 +9,28 @@ var b = { w: 300, h: 30, s: 3, t: 10};
 // Mapping of step names to colors.
 // Mapping of step names to colors.
 var colors = {
-  "mes": "#a173d1",
-  "mesorregiao": "#5687d1",
-  "microrregiao": "#7b615c",
-  "fato": "#de783b",
+  "1":"#2824A5",
+  "2":"#26408E",
+  "3":"#2468A5",
+  "4":"#22839B"
 
-  // "janeiro":
 };
 
 var yearsA = {
-    "2002": "#a173d1",
-    "2003": "#a173d1",
-    "2004": "#a173d1",
-    "2005": "#a173d1",
-    "2006": "#a173d1",
+    "2002": "#5F449B",
+    "2003": "#5F449B",
+    "2004": "#5F449B",
+    "2005": "#5F449B",
+    "2006": "#5F449B",
 }
 
 var yearsB = {
-    "2007": "#a173d1",
-    "2008": "#a173d1",
-    "2009": "#a173d1",
-    "2010": "#a173d1",
-    "2011": "#a173d1",
-    "2012": "#a173d1",
+    "2007": "#5F449B",
+    "2008": "#5F449B",
+    "2009": "#5F449B",
+    "2010": "#5F449B",
+    "2011": "#5F449B",
+    "2012": "#5F449B",
 }
 
 // Total size of all segments; we set this later, after loading the data.
@@ -57,7 +56,6 @@ var arc = d3.svg.arc()
 d3.text("static/js/path.csv", function(text){
     var csv = d3.csv.parseRows(text);
     var json = buildHierarchy(csv);
-    console.log(json);
     createVisualization(json);
 });
 
@@ -82,8 +80,7 @@ function createVisualization(json) {
         .attr("d", arc)
         .attr("fill-rule", "evenodd")
         .style("fill", function(d) {
-            console.log(d.name)
-            return colors[d.name];
+            return colors[d.depth];
         })
         .style("opacity", 1)
         .on("mouseover", mouseover);
@@ -178,7 +175,7 @@ function updateBreadcrumbs(nodeArray, percentageString){
     var entering = g.enter().append("svg:g");
     entering.append("svg:polygon")
         .attr("points", breadcrumbPoints)
-        .style("fill", function(d) { return colors["mes"]; });
+        .style("fill", function(d) { return colors[d.depth]; });
 
     entering.append("svg:text")
         .attr("x", (b.w + b.t) / 2)
