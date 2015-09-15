@@ -37,6 +37,7 @@ var yearsB = {
 var totalSize = 0;
 
 var vis = d3.select("#chart").append("svg:svg")
+    .attr("id", "vis")
     .attr("width", width)
     .attr("height", height)
     .append("svg:g")
@@ -44,6 +45,7 @@ var vis = d3.select("#chart").append("svg:svg")
     .attr("transform", "translate(" + width/2 + "," + height/2 + ")");
 
 var partition = d3.layout.partition()
+    .sort(null)
     .size([2 * Math.PI, radius * radius])
     .value(function(d) { return d.size });
 
@@ -53,11 +55,15 @@ var arc = d3.svg.arc()
     .innerRadius(function(d) { return Math.sqrt(d.y); })
     .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
 
-d3.text("static/js/path.csv", function(text){
+
+d3.text("static/js/data/path2003.csv", function(text){
     var csv = d3.csv.parseRows(text);
     var json = buildHierarchy(csv);
+    console.log(json);
     createVisualization(json);
 });
+
+
 
 function createVisualization(json) {
     initializeBreadcrumbTrail();
@@ -68,27 +74,52 @@ function createVisualization(json) {
         .attr("r", radius)
         .style("opacity", 0);
 
-    var nodes = partition.nodes(json)
-        .filter(function(d){
-            return (d.dx > 0.005)
-        });
+    var nodes = partition.nodes(json);
+        // .filter(function(d){
+        //     return (d.dx > 0.005)
+        // });
 
-    var path = vis.data([json]).selectAll("path")
+    var path = vis.selectAll("path")
         .data(nodes)
         .enter().append("svg:path")
         .attr("display", function(d) { return d.depth ? null : "none"; })
         .attr("d", arc)
         .attr("fill-rule", "evenodd")
+        .attr("class", "line")
         .style("fill", function(d) {
             return colors[d.depth];
         })
         .style("opacity", 1)
-        .on("mouseover", mouseover);
+        .on("mouseover", mouseover)
+        .each(stash);
 
     d3.select("#container").on("mouseleave", mouseleave);
 
     totalSize = path.node().__data__.value;
 
+}
+
+function stash(d){
+    d.x0 = d.x;
+    d.dx0 = d.dx;
+}
+
+function updateVis(d){
+
+    d3.text("static/js/data/path" + d.key + ".csv", function(text){
+        var csv = d3.csv.parseRows(text);
+        var json = buildHierarchy(csv);
+
+        var nodes = partition.nodes(json)
+        .filter(function(d){
+            return (d.dx > 0.005)
+        });
+
+        var svg = d3.select("#chart").data([json]).transition();
+
+        svg.select(".line").duration(500)
+            .attr("d", arc);
+    });
 }
 
 function mouseleave(d){
@@ -219,7 +250,8 @@ function drawLegend(){
         .enter().append("svg:g")
         .attr("transform", function(d, i){
             return "translate(0," + i * (li.h + li.s) + ")";
-        });
+        })
+        .on("click", function(d){ updateVis(d); });
 
 
     var gB = legendB.selectAll("g")
@@ -227,7 +259,8 @@ function drawLegend(){
         .enter().append("svg:g")
         .attr("transform", function(d, i){
             return "translate(0," + i * (li.h + li.s) + ")";
-        });
+        })
+        .on("click", function(d){ updateVis(d); });
 
     gA.append("svg:rect")
         .attr("rx", li.r)
@@ -294,5 +327,8 @@ function buildHierarchy(csv){
             }
         }
     }
+    console.log(root);
     return root;
 };
+
+
