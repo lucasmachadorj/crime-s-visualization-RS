@@ -1,18 +1,17 @@
-// Dimensions of sunburst.
 var width = 1200,
     height = 600,
     radius = Math.min(width, height) / 2;
 
-// Breadcrumb dimensions: width, height, spacing, width of tip/tail.
 var b = { w: 300, h: 30, s: 3, t: 10};
 
-// Mapping of step names to colors.
-// Mapping of step names to colors.
+var vis;
+
 var colors = {
   "1":"#2824A5",
   "2":"#26408E",
   "3":"#2468A5",
-  "4":"#22839B"
+  "4":"#22839B",
+  "5":"#20838C",
 
 };
 
@@ -36,7 +35,121 @@ var yearsB = {
 // Total size of all segments; we set this later, after loading the data.
 var totalSize = 0;
 
-var vis = d3.select("#chart").append("svg:svg")
+
+function loaddata(text){
+    d3.text("static/js/data/path"+ text + ".csv", function(d){
+        var csv = d3.csv.parseRows(d);
+        var json = buildHierarchy(csv);
+        createVisualization(json);
+    });
+}
+
+loaddata("2002");
+
+function createVisualization(json) {
+
+    d3.select("body").append("div")
+        .attr("id", "title")
+        .append("h1")
+        .style("text-align", "center")
+        .text("Indicativos de Crimes");
+
+    d3.select("body").append("div")
+        .attr("id", "sequence");
+
+
+    d3.select("body").append("div")
+        .attr("id", "sidebarA")
+        .append("div").attr("id", "legendA");
+
+    d3.select("body").append("div")
+        .attr("id", "main")
+        .append("div")
+        .attr("id", "chart")
+        .append("div")
+        .attr("id","explanation")
+        .style("visibility","hidden")
+        .append("span")
+        .attr("id", "percentage");
+
+
+    d3.select("body").append("div")
+        .attr("id", "sidebarB")
+        .append("div").attr("id", "legendB");
+
+
+
+    var li = { w: 75, h: 130, s: 3, r: 3};
+
+    var legendA = d3.select("#legendA").append("svg:svg")
+        .attr("width", li.w)
+        .attr("height", d3.keys(yearsA).length * (li.h + li.s));
+
+    var legendB = d3.select("#legendB").append("svg:svg")
+        .attr("width", li.w)
+        .attr("height", d3.keys(yearsA).length * (li.h + li.s));
+
+
+    var gA = legendA.selectAll("g")
+        .data(d3.entries(yearsA))
+        .enter().append("svg:g")
+        .attr("transform", function(d, i){
+            return "translate(0," + i * (li.h + li.s) + ")";
+        }).on("click", function(d){
+            d3.select("#title").remove();
+            d3.select("#sequence").remove();
+            d3.select("#sidebarA").remove();
+            d3.select("#main").remove();
+            d3.select("#sidebarB").remove();
+            loaddata(d.key);
+
+        });
+
+    var gB = legendB.selectAll("g")
+        .data(d3.entries(yearsB))
+        .enter().append("svg:g")
+        .attr("transform", function(d, i){
+            return "translate(0," + i * (li.h + li.s) + ")";
+        }).on("click", function(d){
+            d3.select("#title").remove();
+            d3.select("#sequence").remove();
+            d3.select("#sidebarA").remove();
+            d3.select("#main").remove();
+            d3.select("#sidebarB").remove();
+            console.log(d.key);
+            loaddata(d.key);
+
+        });
+
+    gA.append("svg:rect")
+        .attr("rx", li.r)
+        .attr("ry", li.r)
+        .attr("width", li.w)
+        .attr("height", li.h)
+        .style("fill", function(d) { return d.value; });
+
+    gB.append("svg:rect")
+        .attr("rx", li.r)
+        .attr("ry", li.r)
+        .attr("width", li.w)
+        .attr("height", li.h)
+        .style("fill", function(d) { return d.value; });
+
+    gA.append("svg:text")
+        .attr("x", li.w / 2)
+        .attr("y", li.h / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "middle")
+        .text(function(d) { return d.key });
+
+    gB.append("svg:text")
+        .attr("x", li.w / 2)
+        .attr("y", li.h / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "middle")
+        .text(function(d) { return d.key });
+
+    vis = d3.select("#chart").append("svg:svg")
     .attr("id", "vis")
     .attr("width", width)
     .attr("height", height)
@@ -44,43 +157,29 @@ var vis = d3.select("#chart").append("svg:svg")
     .attr("id","container")
     .attr("transform", "translate(" + width/2 + "," + height/2 + ")");
 
-var partition = d3.layout.partition()
-    .sort(null)
-    .size([2 * Math.PI, radius * radius])
-    .value(function(d) { return d.size });
+    var partition = d3.layout.partition()
+        .sort(null)
+        .size([2 * Math.PI, radius * radius])
+        .value(function(d) { return d.size });
 
-var arc = d3.svg.arc()
-    .startAngle(function(d) { return d.x; })
-    .endAngle(function(d) { return d.x + d.dx; })
-    .innerRadius(function(d) { return Math.sqrt(d.y); })
-    .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
+    var arc = d3.svg.arc()
+        .startAngle(function(d) { return d.x; })
+        .endAngle(function(d) { return d.x + d.dx; })
+        .innerRadius(function(d) { return Math.sqrt(d.y); })
+        .outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
 
-
-d3.text("static/js/data/path2003.csv", function(text){
-    var csv = d3.csv.parseRows(text);
-    var json = buildHierarchy(csv);
-    console.log(json);
-    createVisualization(json);
-});
-
-
-
-function createVisualization(json) {
     initializeBreadcrumbTrail();
-    drawLegend();
-
 
     vis.append("svg:circle")
         .attr("r", radius)
         .style("opacity", 0);
 
-    var nodes = partition.nodes(json);
-        // .filter(function(d){
-        //     return (d.dx > 0.005)
-        // });
+    var nodes = partition.nodes(json)
+        .filter(function(d){
+            return (d.dx > 0.003)
+        });
 
-    var path = vis.selectAll("path")
-        .data(nodes)
+    var path = vis.selectAll("path").data(nodes)
         .enter().append("svg:path")
         .attr("display", function(d) { return d.depth ? null : "none"; })
         .attr("d", arc)
@@ -90,36 +189,11 @@ function createVisualization(json) {
             return colors[d.depth];
         })
         .style("opacity", 1)
-        .on("mouseover", mouseover)
-        .each(stash);
+        .on("mouseover", mouseover);
 
     d3.select("#container").on("mouseleave", mouseleave);
-
     totalSize = path.node().__data__.value;
 
-}
-
-function stash(d){
-    d.x0 = d.x;
-    d.dx0 = d.dx;
-}
-
-function updateVis(d){
-
-    d3.text("static/js/data/path" + d.key + ".csv", function(text){
-        var csv = d3.csv.parseRows(text);
-        var json = buildHierarchy(csv);
-
-        var nodes = partition.nodes(json)
-        .filter(function(d){
-            return (d.dx > 0.005)
-        });
-
-        var svg = d3.select("#chart").data([json]).transition();
-
-        svg.select(".line").duration(500)
-            .attr("d", arc);
-    });
 }
 
 function mouseleave(d){
@@ -219,7 +293,6 @@ function updateBreadcrumbs(nodeArray, percentageString){
         return "translate(" + i * (b.w + b.s) + ", 0)";
     });
 
-    // Remove exiting nodes.
     g.exit().remove();
 
     d3.select("#trail").select("#endlabel")
@@ -233,63 +306,7 @@ function updateBreadcrumbs(nodeArray, percentageString){
         .style("visibility", "");
 }
 
-function drawLegend(){
-    var li = { w: 75, h: 130, s: 3, r: 3};
 
-    var legendA = d3.select("#legendA").append("svg:svg")
-        .attr("width", li.w)
-        .attr("height", d3.keys(yearsA).length * (li.h + li.s));
-
-    var legendB = d3.select("#legendB").append("svg:svg")
-        .attr("width", li.w)
-        .attr("height", d3.keys(yearsA).length * (li.h + li.s));
-
-
-    var gA = legendA.selectAll("g")
-        .data(d3.entries(yearsA))
-        .enter().append("svg:g")
-        .attr("transform", function(d, i){
-            return "translate(0," + i * (li.h + li.s) + ")";
-        })
-        .on("click", function(d){ updateVis(d); });
-
-
-    var gB = legendB.selectAll("g")
-        .data(d3.entries(yearsB))
-        .enter().append("svg:g")
-        .attr("transform", function(d, i){
-            return "translate(0," + i * (li.h + li.s) + ")";
-        })
-        .on("click", function(d){ updateVis(d); });
-
-    gA.append("svg:rect")
-        .attr("rx", li.r)
-        .attr("ry", li.r)
-        .attr("width", li.w)
-        .attr("height", li.h)
-        .style("fill", function(d) { return d.value; });
-
-    gB.append("svg:rect")
-        .attr("rx", li.r)
-        .attr("ry", li.r)
-        .attr("width", li.w)
-        .attr("height", li.h)
-        .style("fill", function(d) { return d.value; });
-
-    gA.append("svg:text")
-        .attr("x", li.w / 2)
-        .attr("y", li.h / 2)
-        .attr("dy", "0.35em")
-        .attr("text-anchor", "middle")
-        .text(function(d) { return d.key });
-
-    gB.append("svg:text")
-        .attr("x", li.w / 2)
-        .attr("y", li.h / 2)
-        .attr("dy", "0.35em")
-        .attr("text-anchor", "middle")
-        .text(function(d) { return d.key });
-}
 
 function buildHierarchy(csv){
     var root = {"name": "root", "children": []};
@@ -299,8 +316,8 @@ function buildHierarchy(csv){
         if(isNaN(size)){
             continue;
         }
-
         var parts = sequence.split("-");
+
         var currentNode = root;
         for( var j = 0; j < parts.length; j++){
             var children = currentNode["children"];
@@ -327,7 +344,7 @@ function buildHierarchy(csv){
             }
         }
     }
-    console.log(root);
+
     return root;
 };
 
